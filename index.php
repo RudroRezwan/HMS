@@ -8,6 +8,8 @@ error_reporting(0);
 <?php include('sidebar.php'); ?>
 
 <!-- Main content -->
+ <!-- Main content -->
+  <!-- Main content --><!-- Main content -->
 <div class="col-md-10 p-4">
   <h2 class="mb-4">Admin Dashboard</h2>
 
