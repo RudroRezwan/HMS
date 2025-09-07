@@ -1,109 +1,83 @@
 <?php
 session_start();
-include('config.php');
-error_reporting(0);
+include('config.php'); // DB connection
+
+// Fetch counts
+$totalUsers = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS cnt FROM user"))['cnt'];
+$totalDoctors = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS cnt FROM doctors"))['cnt'];
+$totalAppointments = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS cnt FROM appointment"))['cnt'];
+$totalPatients = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(DISTINCT userId) AS cnt FROM appointment"))['cnt'];
+$totalQueries = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS cnt FROM tblcontactus"))['cnt'];
 ?>
 
 <?php include('header.php'); ?>
 <?php include('sidebar.php'); ?>
 
-<!-- Main Content -->
+<!-- ================= MAIN CONTENT ================= -->
 <div class="col-md-10 p-4">
-    <h2 class="mb-4">Admin Dashboard</h2>
+  <h3 class="mb-4 fw-bold">ADMIN | DASHBOARD</h3>
 
-    <!-- Quick Access Cards -->
-    <div class="row mb-4 text-center">
-        <!-- Doctors Card -->
-        <div class="col-md-4">
-            <a href="manage_doctors.php" class="text-decoration-none">
-                <div class="card bg-primary text-white mb-3 shadow-sm">
-                    <div class="card-body">
-                        <?php $doctors = mysqli_num_rows(mysqli_query($con,"SELECT id FROM doctors")); ?>
-                        <h4><?php echo $doctors; ?></h4>
-                        <p>Manage Doctors</p>
-                    </div>
-                </div>
-            </a>
+  <div class="row g-4">
+    <!-- Manage Users -->
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100 text-center p-3">
+        <div class="card-body">
+          <i class="bi bi-people fs-1 text-primary"></i>
+          <h5 class="mt-3">Manage Users</h5>
+          <p class="text-muted mb-2">Total Users: <span class="fw-bold"><?php echo $totalUsers; ?></span></p>
+          <a href="manage_users.php" class="btn btn-outline-primary btn-sm">View</a>
         </div>
-        <!-- Patients Card -->
-        <div class="col-md-4">
-            <a href="manage_patients.php" class="text-decoration-none">
-                <div class="card bg-success text-white mb-3 shadow-sm">
-                    <div class="card-body">
-                        <?php $patients = mysqli_num_rows(mysqli_query($con,"SELECT id FROM users")); ?>
-                        <h4><?php echo $patients; ?></h4>
-                        <p>Manage Patients</p>
-                    </div>
-                </div>
-            </a>
-        </div>
-        <!-- Appointments Card -->
-        <div class="col-md-4">
-            <a href="manage_appointments.php" class="text-decoration-none">
-                <div class="card bg-warning text-dark mb-3 shadow-sm">
-                    <div class="card-body">
-                        <?php $apps = mysqli_num_rows(mysqli_query($con,"SELECT id FROM appointment")); ?>
-                        <h4><?php echo $apps; ?></h4>
-                        <p>Manage Appointments</p>
-                    </div>
-                </div>
-            </a>
-        </div>
+      </div>
     </div>
 
-    <!-- Recent Appointments Table -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-            <span>Recent Appointments</span>
-            <a href="manage_appointments.php" class="btn btn-sm btn-light">View All</a>
+    <!-- Manage Doctors -->
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100 text-center p-3">
+        <div class="card-body">
+          <i class="bi bi-person-badge fs-1 text-success"></i>
+          <h5 class="mt-3">Manage Doctors</h5>
+          <p class="text-muted mb-2">Total Doctors: <span class="fw-bold"><?php echo $totalDoctors; ?></span></p>
+          <a href="manage_doctors.php" class="btn btn-outline-success btn-sm">View</a>
         </div>
-        <div class="card-body table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th class="serial-col">#</th>
-                        <th>Patient</th>
-                        <th>Doctor</th>
-                        <th>Department</th>
-                        <th>Date / Time</th>
-                        <th>Created On</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    $query = mysqli_query($con,
-                        "SELECT appointment.*, users.fullName AS pname,
-                        doctors.doctorName AS dname, doctors.specilization AS spec
-                        FROM appointment
-                        JOIN users ON users.id = appointment.userId
-                        JOIN doctors ON doctors.id = appointment.doctorId
-                        ORDER BY appointment.id DESC LIMIT 10"
-                    );
-
-                    $cnt = 1;
-                    while ($row = mysqli_fetch_assoc($query)) {
-                        // Status badge
-                        if ($row['userStatus']==1 && $row['doctorStatus']==1) $status = "<span class='badge bg-success'>Active</span>";
-                        if ($row['userStatus']==0 && $row['doctorStatus']==1) $status = "<span class='badge bg-danger'>Cancelled by Patient</span>";
-                        if ($row['userStatus']==1 && $row['doctorStatus']==0) $status = "<span class='badge bg-warning text-dark'>Cancelled by Doctor</span>";
-
-                        echo "<tr>";
-                        echo "<td class='serial-col'>".$cnt."</td>";
-                        echo "<td>".$row['pname']."</td>";
-                        echo "<td>".$row['dname']."</td>";
-                        echo "<td>".$row['spec']."</td>";
-                        echo "<td>".$row['appointmentDate']." / ".$row['appointmentTime']."</td>";
-                        echo "<td>".$row['postingDate']."</td>";
-                        echo "<td>".$status."</td>";
-                        echo "</tr>";
-                        $cnt++;
-                    }
-                    ?>
-                </tbody>
-            </table>
-        </div>
+      </div>
     </div>
+
+    <!-- Appointments -->
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100 text-center p-3">
+        <div class="card-body">
+          <i class="bi bi-calendar-check fs-1 text-info"></i>
+          <h5 class="mt-3">Appointments</h5>
+          <p class="text-muted mb-2">Total Appointments: <span class="fw-bold"><?php echo $totalAppointments; ?></span></p>
+          <a href="appointment_history.php" class="btn btn-outline-info btn-sm">View</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Patients -->
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100 text-center p-3">
+        <div class="card-body">
+          <i class="bi bi-hospital fs-1 text-danger"></i>
+          <h5 class="mt-3">Manage Patients</h5>
+          <p class="text-muted mb-2">Total Patients: <span class="fw-bold"><?php echo $totalPatients; ?></span></p>
+          <a href="manage_patient.php" class="btn btn-outline-danger btn-sm">View</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Queries -->
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100 text-center p-3">
+        <div class="card-body">
+          <i class="bi bi-envelope fs-1 text-warning"></i>
+          <h5 class="mt-3">New Queries</h5>
+          <p class="text-muted mb-2">Total New Queries: <span class="fw-bold"><?php echo $totalQueries; ?></span></p>
+          <a href="contact_us.php" class="btn btn-outline-warning btn-sm">View</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <?php include('footer.php'); ?>
